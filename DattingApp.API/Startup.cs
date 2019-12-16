@@ -31,6 +31,8 @@ namespace DattingApp.API
             );
             services.AddControllers();
             services.AddCors();
+            //The service is added one per request within the scope.
+            services.AddScoped<IAuthRepository, AuthRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
