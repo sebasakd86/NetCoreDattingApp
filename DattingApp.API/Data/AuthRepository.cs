@@ -24,6 +24,8 @@ namespace DattingApp.API.Data
             {
                 return null;
             }
+
+            return user;
         }
 
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
@@ -59,7 +61,7 @@ namespace DattingApp.API.Data
 
         public async Task<bool> UserExists(string userName)
         {
-            if(!await this._context.Users.AnyAsync(u => u.UserName == userName))
+            if(await this._context.Users.AnyAsync(u => u.UserName == userName))
                 return true;
             return false;
         }

@@ -11,7 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 namespace DattingApp.API
 {
     public class Startup
@@ -33,6 +35,18 @@ namespace DattingApp.API
             services.AddCors();
             //The service is added one per request within the scope.
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer
+            (options => {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,7 +63,9 @@ namespace DattingApp.API
 
             app.UseRouting();
 
-            app.UseCors(c => c.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            app.UseCors(c => c.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());            
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
