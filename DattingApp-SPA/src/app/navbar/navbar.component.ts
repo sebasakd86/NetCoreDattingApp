@@ -13,7 +13,7 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit() {
   }
-  login(){
+  login() {
     this.authService.login(this.model).subscribe(next => {
       console.log('Login OK!');
     },
@@ -21,11 +21,11 @@ export class NavbarComponent implements OnInit {
       console.log('Login FAILED!!');
     });
   }
-  loggedIn(){
+  loggedIn() {
     const token = localStorage.getItem('token');
     return !!token; // if(token) return true;
   }
-  logOut(){
+  logOut() {
     localStorage.removeItem('token');
     console.log('Logged out!!');
   }
