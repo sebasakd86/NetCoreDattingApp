@@ -65,6 +65,7 @@ namespace DattingApp.API
             }
             else
             {
+                //To catch global errors in production environment
                 app.UseExceptionHandler(builder => {
                     builder.Run(async context => {
                         context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
