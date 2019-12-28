@@ -18,6 +18,7 @@ using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using DattingApp.API.Helpers;
+using AutoMapper;
 
 namespace DattingApp.API
 {
@@ -37,9 +38,16 @@ namespace DattingApp.API
                 x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
             );
             services.AddControllers();
+            // To add json functionality to netCore 3.0 without System.Text.Json // To avoid the circular reference issue.
+            services.AddControllers().AddNewtonsoftJson(
+                x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
             services.AddCors();
+            //So automapper can look for the profile in our assembly
+            services.AddAutoMapper(typeof(DatingRepository).Assembly);
             //The service is added one per request within the scope.
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IDatingRepository, DatingRepository>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer
             (options => {
