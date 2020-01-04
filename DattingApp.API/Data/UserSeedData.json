@@ -120,7 +120,7 @@
     "Country": "Taiwan",
     "Photos": [
       {
-        "url": "https://randomuser.me/api/portraits/male/71.jpg",
+        "url": "https://randomuser.me/api/portraits/men/71.jpg",
         "isMain": true,
         "description": "Ut culpa laborum ut anim et ut amet ex eu amet dolore."
       }
@@ -141,7 +141,7 @@
     "Country": "Saint Lucia",
     "Photos": [
       {
-        "url": "https://randomuser.me/api/portraits/male/35.jpg",
+        "url": "https://randomuser.me/api/portraits/men/35.jpg",
         "isMain": true,
         "description": "Exercitation magna ut est exercitation sint id qui."
       }
@@ -162,7 +162,7 @@
     "Country": "British Indian Ocean Territory",
     "Photos": [
       {
-        "url": "https://randomuser.me/api/portraits/male/52.jpg",
+        "url": "https://randomuser.me/api/portraits/men/52.jpg",
         "isMain": true,
         "description": "Consectetur ea aute incididunt ad ex consequat incididunt cupidatat dolore labore dolor velit deserunt elit."
       }
@@ -183,7 +183,7 @@
     "Country": "Iran",
     "Photos": [
       {
-        "url": "https://randomuser.me/api/portraits/male/57.jpg",
+        "url": "https://randomuser.me/api/portraits/men/57.jpg",
         "isMain": true,
         "description": "Quis consectetur reprehenderit elit ea eiusmod duis est duis ullamco aute amet reprehenderit incididunt."
       }
@@ -204,7 +204,7 @@
     "Country": "Jordan",
     "Photos": [
       {
-        "url": "https://randomuser.me/api/portraits/male/62.jpg",
+        "url": "https://randomuser.me/api/portraits/men/62.jpg",
         "isMain": true,
         "description": "Ipsum do deserunt eiusmod laborum excepteur."
       }
