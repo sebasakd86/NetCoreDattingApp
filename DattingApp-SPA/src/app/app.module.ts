@@ -24,6 +24,9 @@ import { UserService } from './_service/user.service';
 import { MemberDetailResolver } from './_resolvers/member-detail.resolver';
 import { MemberListResolver } from './_resolvers/member-list.resolver';
 import { NgxGalleryModule } from 'ngx-gallery';
+import { MemberEditComponent } from './members/member-edit/member-edit.component';
+import { MemberEditResolver } from './_resolvers/member-edit.resolver';
+import { PreventUnsavedChanges } from './_guards/prevent-unsaved-changes.guard';
 
 // To attach the token to httprequest via an interceptor, configured in JwTModule.forRoot
 export function tokenGetter() {
@@ -49,7 +52,8 @@ export class CustomHammerConfig extends HammerGestureConfig {
       ListsComponent,
       MessagesComponent,
       MemberCardComponent,
-      MemberDetailComponent
+      MemberDetailComponent,
+      MemberEditComponent
    ],
    imports: [
       BrowserModule,
@@ -75,7 +79,9 @@ export class CustomHammerConfig extends HammerGestureConfig {
       UserService,
       MemberDetailResolver,
       MemberListResolver,
-      { provide: HAMMER_GESTURE_CONFIG, useClass: CustomHammerConfig } // To avoid error while using NgxGallery
+      MemberEditResolver,
+      PreventUnsavedChanges,
+      { provide: HAMMER_GESTURE_CONFIG, useClass: CustomHammerConfig } // To avoid error while using NgxGallery      
    ],
    bootstrap: [
       AppComponent
