@@ -22,6 +22,7 @@ export class MemberDetailComponent implements OnInit {
   ngOnInit() {
     // this.loadUser();
     this.route.data.subscribe(data => {
+      // console.log(data.user);
       this.user = data.user;
     }); // Now theres no need to use user? bc the resolver get executed first.
 

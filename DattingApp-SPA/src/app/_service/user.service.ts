@@ -15,6 +15,8 @@ constructor(private http: HttpClient) { }
     return this.http.get<User[]>(this.baseUrl + 'users');
   }
   getUser(id): Observable<User> {
-    return this.http.get<User>(this.baseUrl + 'users/' + id);
+    const u = this.http.get<User>(this.baseUrl + 'users/' + id);
+    // console.log(u);
+    return u;
   }
 }

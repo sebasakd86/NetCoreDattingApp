@@ -11,7 +11,7 @@ export interface User {
     photoUrl: string;
     city: string;
     country: string;
-    interest?: string; // ? = Optional always go after the required
+    interests?: string; // ? = Optional always go after the required
     introduction?: string;
     lookingFor?: string;
     photos?: Photo[];
