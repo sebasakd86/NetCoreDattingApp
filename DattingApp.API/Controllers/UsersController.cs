@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using DattingApp.API.Data;
@@ -39,5 +40,21 @@ namespace DattingApp.API.Controllers
 
             return Ok(retUser);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, UserForUpdateDTO usr)
+        {
+            if(id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+
+            var usrFromRepo = await _repo.GetUser(id);
+            
+            _mapper.Map(usr, usrFromRepo);
+
+            if(await _repo.SaveAll())
+                return NoContent();
+            throw new System.Exception($"Updating user {id} failed on save");
+        }
+
     }
 }
