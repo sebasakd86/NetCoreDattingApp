@@ -20,6 +20,13 @@ namespace DattingApp.API.Data
         {
             _context.Remove(entity);
         }
+
+        public async Task<Photo> GetPhoto(int photoId)
+        {
+            var p = await _context.Photos.FirstOrDefaultAsync(p => p.Id == photoId);
+            return p;
+        }
+
         public async Task<User> GetUser(int id)
         {
             var u = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.ID == id);

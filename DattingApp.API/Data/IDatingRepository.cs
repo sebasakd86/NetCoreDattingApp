@@ -11,5 +11,7 @@ namespace DattingApp.API.Data
          Task<bool> SaveAll(); // 0 or more changes
          Task<IEnumerable<User>> GetUsers();
          Task<User> GetUser(int id);
+        Task<Photo> GetPhoto(int photoId);
+
     }
 }

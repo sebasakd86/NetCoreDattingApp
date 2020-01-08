@@ -22,7 +22,8 @@ namespace DattingApp.API.Helpers
                     , opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge()));
             CreateMap<Photo, PhotosForDetailDTO>();
             CreateMap<UserForUpdateDTO, User>();
-            
+            CreateMap<Photo, PhotoForReturnDTO>();
+            CreateMap<PhotoForCreationDTO, PhotoForCreationDTO>();
         }
     }
 }

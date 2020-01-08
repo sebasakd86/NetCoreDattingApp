@@ -43,6 +43,7 @@ namespace DattingApp.API
                 x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
             services.AddCors();
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
             //So automapper can look for the profile in our assembly
             services.AddAutoMapper(typeof(DatingRepository).Assembly);
             //The service is added one per request within the scope.
