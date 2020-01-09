@@ -28,5 +28,7 @@ constructor(private http: HttpClient) { }
     // Post requirees something in the body, so the empty obj goes along.
     return this.http.post(this.baseUrl + 'users/' + userId + '/photos/' + photoId + '/setMain', {});
   }
-
+  deletePhoto(userId: number, photoId: number) {
+    return this.http.delete(this.baseUrl + 'users/' + userId + '/photos/' + photoId);
+  }
 }

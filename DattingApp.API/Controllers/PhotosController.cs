@@ -39,19 +39,19 @@ namespace DattingApp.API.Controllers
 
         [HttpPost]
         public async Task<IActionResult> AddPhotoForUser(
-            int userId, 
+            int userId,
             [FromForm]PhotoForCreationDTO photoFroCreation)
         {
-            if(userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
             var usrFromRepo = await _repo.GetUser(userId);
             var file = photoFroCreation.File;
             var uploadResult = new ImageUploadResult();
 
-            if(file.Length > 0)
+            if (file.Length > 0)
             {
-                using(var stream = file.OpenReadStream())
+                using (var stream = file.OpenReadStream())
                 {
                     var uploadParams = new ImageUploadParams()
                     {
@@ -69,22 +69,24 @@ namespace DattingApp.API.Controllers
             photoFroCreation.PublicId = uploadResult.PublicId;
 
             var photo = _mapper.Map<Photo>(photoFroCreation);
+            
+            photo.IsMain = false;
 
-            if(usrFromRepo.Photos.Any(u => u.IsMain))
+            if (!usrFromRepo.Photos.Any(u => u.IsMain))
                 photo.IsMain = true;
 
             usrFromRepo.Photos.Add(photo);
 
-            if(await _repo.SaveAll())
+            if (await _repo.SaveAll())
             {
                 //return Ok();
                 PhotoForReturnDTO pReturn = _mapper.Map<PhotoForReturnDTO>(photo);
-                return CreatedAtRoute("GetPhoto", new {  userId = userId, id = photo.Id }, pReturn);
+                return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, pReturn);
             }
             return BadRequest("Could not add the photo");
         }
 
-        [HttpGet("photoId", Name= "GetPhoto")]
+        [HttpGet("photoId", Name = "GetPhoto")]
         public async Task<IActionResult> GetPhoto(int photoId)
         {
             var photoFromRepo = await _repo.GetPhoto(photoId);
@@ -94,20 +96,20 @@ namespace DattingApp.API.Controllers
             return Ok(photo);
         }
 
-        [HttpPost("{id}/setMain")]
+        [HttpPost("{photoId}/setMain")]
         public async Task<IActionResult> SetMainPhoto(int userId, int photoId)
         {
-            if(userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
             var usrFromRepo = await _repo.GetUser(userId);
 
-            if(!usrFromRepo.Photos.Any(p => p.Id == photoId))
+            if (!usrFromRepo.Photos.Any(p => p.Id == photoId))
                 return Unauthorized();
 
             var photoFromRepo = await _repo.GetPhoto(photoId);
 
-            if(photoFromRepo.IsMain)
+            if (photoFromRepo.IsMain)
                 return BadRequest("This is already the main photo");
             // Why not?
             //var currentMainPhoto = await _repo.GetPhoto(usrFromRepo.Photos.Any(p => p.IsMain).Id);
@@ -117,13 +119,50 @@ namespace DattingApp.API.Controllers
 
             photoFromRepo.IsMain = true;
 
-            if(await _repo.SaveAll())
+            if (await _repo.SaveAll())
             {
                 return NoContent();
             }
 
             return BadRequest("Failed to set photo to main");
+        }
+        [HttpDelete("{photoId}")]
+        public async Task<IActionResult> DeletePhoto(int userId, int photoId)
+        {
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
 
+            var usrFromRepo = await _repo.GetUser(userId);
+
+            if (!usrFromRepo.Photos.Any(p => p.Id == photoId))
+                return Unauthorized();
+
+            var photoFromRepo = await _repo.GetPhoto(photoId);
+
+            if (photoFromRepo.IsMain)
+                return BadRequest("Can't delete the main photo");
+
+            if (photoFromRepo.PublicId != null)
+            {
+
+                var delParams = new DeletionParams(photoFromRepo.PublicId);
+
+                var result = _cloudinary.Destroy(delParams);
+
+                if (result.Result == "ok")
+                {
+                    _repo.Delete(photoFromRepo);
+                }
+            }
+            else
+                _repo.Delete(photoFromRepo);
+                
+            if (await _repo.SaveAll())
+            {
+                return Ok();
+            }
+
+            return BadRequest("Failed to delete the photo");
         }
     }
 }
