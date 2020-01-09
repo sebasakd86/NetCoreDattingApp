@@ -21,6 +21,12 @@ constructor(private http: HttpClient) { }
   }
 
   updateUser(id: number, user: User ){
-    return this.http.put(this.baseUrl + 'users/' + id, user)
+    return this.http.put(this.baseUrl + 'users/' + id, user);
   }
+
+  setMainPhoto(userId: number, photoId: number) {
+    // Post requirees something in the body, so the empty obj goes along.
+    return this.http.post(this.baseUrl + 'users/' + userId + '/photos/' + photoId + '/setMain', {});
+  }
+
 }

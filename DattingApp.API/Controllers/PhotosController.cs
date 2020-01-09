@@ -38,7 +38,9 @@ namespace DattingApp.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPhotoForUser(int userId, PhotoForCreationDTO photoFroCreation)
+        public async Task<IActionResult> AddPhotoForUser(
+            int userId, 
+            [FromForm]PhotoForCreationDTO photoFroCreation)
         {
             if(userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
@@ -92,5 +94,36 @@ namespace DattingApp.API.Controllers
             return Ok(photo);
         }
 
+        [HttpPost("{id}/setMain")]
+        public async Task<IActionResult> SetMainPhoto(int userId, int photoId)
+        {
+            if(userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+
+            var usrFromRepo = await _repo.GetUser(userId);
+
+            if(!usrFromRepo.Photos.Any(p => p.Id == photoId))
+                return Unauthorized();
+
+            var photoFromRepo = await _repo.GetPhoto(photoId);
+
+            if(photoFromRepo.IsMain)
+                return BadRequest("This is already the main photo");
+            // Why not?
+            //var currentMainPhoto = await _repo.GetPhoto(usrFromRepo.Photos.Any(p => p.IsMain).Id);
+            var currentMainPhoto = await _repo.GetMainPhotoForUser(userId);
+
+            currentMainPhoto.IsMain = false;
+
+            photoFromRepo.IsMain = true;
+
+            if(await _repo.SaveAll())
+            {
+                return NoContent();
+            }
+
+            return BadRequest("Failed to set photo to main");
+
+        }
     }
 }
