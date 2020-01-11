@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DattingApp.API.Helpers;
 using DattingApp.API.Model;
 
 namespace DattingApp.API.Data
@@ -9,7 +10,7 @@ namespace DattingApp.API.Data
         void Add<T>(T entity) where T : class;
         void Delete<T>(T entity) where T : class;
         Task<bool> SaveAll(); // 0 or more changes
-        Task<IEnumerable<User>> GetUsers();
+        Task<PagedList<User>> GetUsers(UserParams usrParams);
         Task<User> GetUser(int id);
         Task<Photo> GetPhoto(int photoId);
         Task<Photo> GetMainPhotoForUser(int userId);

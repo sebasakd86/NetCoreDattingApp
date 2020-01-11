@@ -26,11 +26,18 @@ namespace DattingApp.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery] UserParams usrParams)
         {
-            var users = await _repo.GetUsers();
+            PagedList<User> users = await _repo.GetUsers(usrParams);
 
             var retUsers = _mapper.Map<IEnumerable<UserForListDTO>>(users);
+
+            Response.AddPagination(
+                users.CurrentPage, 
+                users.PageSize, 
+                users.TotalCount, 
+                users.TotalPages
+            );
 
             return Ok(retUsers);
         }
