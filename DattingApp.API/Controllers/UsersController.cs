@@ -31,7 +31,7 @@ namespace DattingApp.API.Controllers
 
             return Ok(retUsers);
         }
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name="GetUser")]
         public async Task<IActionResult> GetUser(int id)
         {
             var u = await _repo.GetUser(id);

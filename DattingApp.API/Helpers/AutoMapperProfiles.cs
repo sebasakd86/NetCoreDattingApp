@@ -11,12 +11,12 @@ namespace DattingApp.API.Helpers
         {
             //Maps properties by name, otherwise we would've to configure it.
             CreateMap<User, UserForListDTO>()
-                .ForMember(dest => dest.PhotoUrl, 
+                .ForMember(dest => dest.PhotoUrl,
                     opt => opt.MapFrom(src => src.Photos.FirstOrDefault(p => p.IsMain).Url))
                 .ForMember(dest => dest.Age
                     , opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge()));
             CreateMap<User, UserForDetailedDTO>()
-                .ForMember(dest => dest.PhotoUrl, 
+                .ForMember(dest => dest.PhotoUrl,
                     opt => opt.MapFrom(src => src.Photos.FirstOrDefault(p => p.IsMain).Url))
                 .ForMember(dest => dest.Age
                     , opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge()));
@@ -24,6 +24,7 @@ namespace DattingApp.API.Helpers
             CreateMap<UserForUpdateDTO, User>();
             CreateMap<Photo, PhotoForReturnDTO>();
             CreateMap<PhotoForCreationDTO, Photo>();
+            CreateMap<UserForRegisterDTO, User>();
         }
     }
 }

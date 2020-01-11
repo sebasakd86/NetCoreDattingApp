@@ -64,10 +64,20 @@ export class PhotoEditorComponent implements OnInit {
           isMain: res.isMain
         };
         this.photos.push(photo);
+        if(photo.isMain) {
+          this.updateMainPhotoUrl(photo.url);
+        }
       }
     };
   }
-
+  private updateMainPhotoUrl(url: string) {
+    this.authService.changeMemberPhoto(url);
+    this.authService.currentUser.photoUrl = url;
+    localStorage.setItem(
+      'user',
+      JSON.stringify(this.authService.currentUser)
+    );
+  }
   setMainPhoto(photo: Photo) {
     this.usrService
       .setMainPhoto(this.authService.decodedToken.nameid, photo.id)
@@ -78,12 +88,7 @@ export class PhotoEditorComponent implements OnInit {
           this.currentMainPhoto.isMain = false;
           photo.isMain = true;
           // this.getMemberPhotoChange.emit(photo.url);
-          this.authService.changeMemberPhoto(photo.url);
-          this.authService.currentUser.photoUrl = photo.url;
-          localStorage.setItem(
-            'user',
-            JSON.stringify(this.authService.currentUser)
-          );
+          this.updateMainPhotoUrl(photo.url);
         },
         error => {
           this.alertify.error(error);

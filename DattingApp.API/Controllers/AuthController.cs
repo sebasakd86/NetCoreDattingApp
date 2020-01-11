@@ -35,27 +35,31 @@ namespace DattingApp.API.Controllers
         public async Task<IActionResult> Register(UserForRegisterDTO usrDto)
         {
             usrDto.UserName = usrDto.UserName.ToLower();
-            if(await _repo.UserExists(usrDto.UserName))
+            if (await _repo.UserExists(usrDto.UserName))
             {
                 return BadRequest($"Username {usrDto.UserName} already exists");
             }
-
+            /*
             var user = new User
             {
                 UserName = usrDto.UserName   
             };
+            */
+            User user = _mapper.Map<User>(usrDto);
 
-            var createdUser = _repo.Register(user, usrDto.Password);
+            User createdUser = await _repo.Register(user, usrDto.Password);
 
-            //return CreatedAtRoute();
-            return StatusCode(201);
+            var usrToReturn = _mapper.Map<UserForDetailedDTO>(createdUser);
+
+            //return StatusCode(201);
+            return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.ID }, usrToReturn);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDTO usrDto)
         {
             var userFromRepo = await _repo.Login(usrDto.UserName.ToLower(), usrDto.Password);
-            if(userFromRepo == null)
+            if (userFromRepo == null)
                 return Unauthorized();
             var claims = new[]
             {
@@ -66,7 +70,7 @@ namespace DattingApp.API.Controllers
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value)
             );
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512 );
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
             //Describe the token
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -79,8 +83,9 @@ namespace DattingApp.API.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             var user = _mapper.Map<UserForListDTO>(userFromRepo);
-            
-            return Ok(new {
+
+            return Ok(new
+            {
                 token = tokenHandler.WriteToken(token),
                 user
             });
