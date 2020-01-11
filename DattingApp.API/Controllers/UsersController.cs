@@ -4,11 +4,14 @@ using System.Threading.Tasks;
 using AutoMapper;
 using DattingApp.API.Data;
 using DattingApp.API.DTO;
+using DattingApp.API.Helpers;
+using DattingApp.API.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DattingApp.API.Controllers
 {
+    [ServiceFilter(typeof(LogUserActivity))]
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -34,7 +37,7 @@ namespace DattingApp.API.Controllers
         [HttpGet("{id}", Name="GetUser")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var u = await _repo.GetUser(id);
+            User u = await _repo.GetUser(id);
 
             var retUser = _mapper.Map<UserForDetailedDTO>(u);
 

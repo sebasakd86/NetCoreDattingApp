@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DattingApp.API.Model;
 
@@ -17,5 +18,8 @@ namespace DattingApp.API.DTO
         public ICollection<PhotosForDetailDTO> Photos {get;set;}
         public string Introduction { get; set; }
         public string LookingFor { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastActive { get; set; }
+
     }
 }
