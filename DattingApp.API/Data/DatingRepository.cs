@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +42,29 @@ namespace DattingApp.API.Data
         }
         public async Task<PagedList<User>> GetUsers(UserParams usrParams)
         {
-            var users = _context.Users.Include(p => p.Photos);
+            //do i need to put every user and photo in memory? cant filter here?
+            var users = _context.Users
+                .Include(p => p.Photos)
+                .OrderByDescending(u => u.LastActive)
+                .AsQueryable();
+
+            users = users.Where(u => u.ID != usrParams.UserId);
+
+            users = users.Where(u => u.Gender == usrParams.Gender);
+
+            if (usrParams.MinAge != 18 || usrParams.MaxAge != 99)
+            {
+                var minDob = DateTime.Now.AddYears(usrParams.MaxAge * -1 - 1);
+                var maxDob = DateTime.Now.AddYears(usrParams.MinAge * -1 - 1);
+                users = users.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+            }
+            if (!string.IsNullOrEmpty(usrParams.OrderBy))
+            {
+                if (usrParams.OrderBy == "created")
+                {
+                    users = users.OrderByDescending(u => u.Created);
+                }
+            }
             return await PagedList<User>.CreateAsync(users, usrParams.PageNumber, usrParams.PageSize);
             //return await  _context.Users.Include(p => p.Photos).ToListAsync();
         }
