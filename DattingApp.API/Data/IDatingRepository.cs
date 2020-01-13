@@ -14,6 +14,6 @@ namespace DattingApp.API.Data
         Task<User> GetUser(int id);
         Task<Photo> GetPhoto(int photoId);
         Task<Photo> GetMainPhotoForUser(int userId);
-
+        Task<Like> GetLike(int userId, int recipientId);
     }
 }

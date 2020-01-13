@@ -20,5 +20,7 @@ namespace DattingApp.API.Model
         public ICollection<Photo> Photos {get;set;}
         public string Introduction { get; set; }
         public string LookingFor { get; set; }
+        public ICollection<Like> Likers { get; set; }
+        public ICollection<Like> Likees { get; set; }
     }
 }
