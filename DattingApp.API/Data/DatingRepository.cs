@@ -84,7 +84,7 @@ namespace DattingApp.API.Data
             //return await  _context.Users.Include(p => p.Photos).ToListAsync();
         }
         private async Task<IEnumerable<int>> GetUserLikes(int userId, bool likers)
-        { 
+        {
             User u = await _context.Users
                         .Include(x => x.Likers)
                         .Include(x => x.Likees)
@@ -102,6 +102,40 @@ namespace DattingApp.API.Data
         public async Task<bool> SaveAll()
         {
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<Message> GetMessage(int msgId)
+        {
+            return await _context.Messages.FirstOrDefaultAsync(m => m.Id == msgId);
+        }
+
+        public async Task<PagedList<Message>> GetMessagesForUser(MessageParams msgParams)
+        {
+            var msgs = _context.Messages
+                .Include(u => u.Sender)
+                .ThenInclude(p => p.Photos)
+                .Include(u => u.Recipient)
+                .ThenInclude(p => p.Photos)
+                .AsQueryable();
+
+            if (msgParams.MessageContainer == "Inbox")
+                msgs = msgs.Where(u => u.RecipientId == msgParams.UserId);
+            else if (msgParams.MessageContainer == "Outbox")
+                msgs = msgs.Where(u => u.SenderId == msgParams.UserId);
+            else
+                msgs = msgs.Where(u => u.RecipientId == msgParams.UserId && !u.IsRead);
+
+            msgs = msgs.OrderByDescending(d => d.MessageSent);
+
+            return await PagedList<Message>.CreateAsync
+                (msgs, msgParams.PageNumber, msgParams.PageSize);
+            //This should be an abstraction or composite class since we're using them in quite a few classes.
+            //Same with the fn that check the user ID EVERYWHERE!
+        }
+
+        public Task<IEnumerable<Message>> GetMessageThread(int senderId, int receiverId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
