@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -35,6 +36,42 @@ namespace DattingApp.API.Controllers
                 return NotFound();
             return Ok(msgFromRepo);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMessagesForUser(
+            int userId, 
+            [FromQuery] MessageParams msgParams)
+        { 
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+
+            msgParams.UserId = userId;
+
+            var msgsFromRepo = await _repo.GetMessagesForUser(msgParams);
+
+            var msgs = _mapper.Map<IEnumerable<MessageToReturnDTO>>(msgsFromRepo);
+
+            Response.AddPagination(
+                msgsFromRepo.CurrentPage, 
+                msgsFromRepo.PageSize, 
+                msgsFromRepo.TotalCount, 
+                msgsFromRepo.TotalPages);
+
+            return Ok(msgs);
+        }
+        [HttpGet("thread/{receiverId}")]
+        public async Task<IActionResult> GetMessageThread(int senderId, int receiverId)
+        {
+            if (senderId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+
+            var msgsFromRepo = await _repo.GetMessageThread(senderId, receiverId);
+
+            var msgThread = _mapper.Map<IEnumerable<MessageToReturnDTO>>(msgsFromRepo);
+
+            return Ok(msgThread);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateMessage(int senderId, MessageForCreationDTO msgDTO)
         {
@@ -44,17 +81,17 @@ namespace DattingApp.API.Controllers
             msgDTO.SenderId = senderId;
 
             User recipient = await _repo.GetUser(msgDTO.ReceipientId);
-            if(recipient == null)
+            if (recipient == null)
                 return BadRequest("Could not find user");
 
             Message m = _mapper.Map<Message>(msgDTO);
 
             _repo.Add(m);
 
-            if(await _repo.SaveAll())
-            {                
+            if (await _repo.SaveAll())
+            {
                 var msgReturn = _mapper.Map<MessageForCreationDTO>(m);
-                return CreatedAtRoute("GetMessage", new { senderId, id = m.Id}, msgReturn);
+                return CreatedAtRoute("GetMessage", new { senderId, id = m.Id }, msgReturn);
                 //return CreatedAtRoute("GetMessage", new { senderId, id = m.Id}, m);
             }
 

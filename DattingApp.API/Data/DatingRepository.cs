@@ -132,10 +132,15 @@ namespace DattingApp.API.Data
             //This should be an abstraction or composite class since we're using them in quite a few classes.
             //Same with the fn that check the user ID EVERYWHERE!
         }
-
-        public Task<IEnumerable<Message>> GetMessageThread(int senderId, int receiverId)
+        public async Task<IEnumerable<Message>> GetMessageThread(int senderId, int receiverId)
         {
-            throw new NotImplementedException();
+            return await _context.Messages
+                .Include(u => u.Sender).ThenInclude(p => p.Photos)
+                .Include(u => u.Recipient).ThenInclude(p => p.Photos)
+                .Where(m => m.RecipientId == senderId && m.SenderId == receiverId ||
+                m.RecipientId == receiverId && m.SenderId == senderId)
+                .OrderByDescending(m => m.MessageSent)
+                .ToListAsync();
         }
     }
 }
