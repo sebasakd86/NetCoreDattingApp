@@ -10,7 +10,7 @@ namespace DattingApp.API.Model
         public DateTime DateAdded { get; set; }
         public bool IsMain { get; set; }
         // So EF makes a cascade delete
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public int UserId { get; set; }
 
         public string PublicId {get;set;}

@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using DattingApp.API.Helpers;
 using AutoMapper;
+using Pomelo.EntityFrameworkCore.MySql;
+
 
 namespace DattingApp.API
 {
@@ -31,12 +33,34 @@ namespace DattingApp.API
 
         public IConfiguration Configuration { get; }
 
+        //This Run automatically since it's conventioned base (just like controllers)
+        public void ConfigureProductionServices(IServiceCollection services)
+        {
+            services.AddDbContext<DataContext>(
+                x => 
+                {
+                    x.UseLazyLoadingProxies(); //To enable LazyLoading avoiding includes.
+                    x.UseMySql(Configuration.GetConnectionString("MySQLConnetionString"));
+                } 
+            );
+
+            ConfigureServices(services);
+        }
+        public void ConfigureDevelopmentServices(IServiceCollection services)
+        {
+            services.AddDbContext<DataContext>(
+                x => 
+                {
+                    x.UseLazyLoadingProxies();
+                    x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+                }
+            );
+
+            ConfigureServices(services);
+        }
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<DataContext>(
-                x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
-            );
             services.AddControllers();
             // To add json functionality to netCore 3.0 without System.Text.Json // To avoid the circular reference issue.
             services.AddControllers().AddNewtonsoftJson(
@@ -98,10 +122,16 @@ namespace DattingApp.API
             app.UseAuthentication();
 
             app.UseAuthorization();
+            // To serve static files
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                //To route the angular app
+                endpoints.MapFallbackToController("Index","Fallback");
             });
         }
     }

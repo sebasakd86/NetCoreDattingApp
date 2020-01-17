@@ -42,14 +42,16 @@ namespace DattingApp.API.Data
 
         public async Task<User> GetUser(int id)
         {
-            var u = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.ID == id);
+            var u = await _context.Users
+                        //.Include(p => p.Photos)
+                        .FirstOrDefaultAsync(u => u.ID == id);
             return u;
         }
         public async Task<PagedList<User>> GetUsers(UserParams usrParams)
         {
             //do i need to put every user and photo in memory? cant filter here?
             var users = _context.Users
-                .Include(p => p.Photos)
+                //.Include(p => p.Photos)
                 .OrderByDescending(u => u.LastActive)
                 .AsQueryable();
 
@@ -86,8 +88,8 @@ namespace DattingApp.API.Data
         private async Task<IEnumerable<int>> GetUserLikes(int userId, bool likers)
         {
             User u = await _context.Users
-                        .Include(x => x.Likers)
-                        .Include(x => x.Likees)
+                        //.Include(x => x.Likers)
+                        //.Include(x => x.Likees)
                         .FirstOrDefaultAsync(u => u.ID == userId);
             if (likers)
             {
@@ -112,10 +114,9 @@ namespace DattingApp.API.Data
         public async Task<PagedList<Message>> GetMessagesForUser(MessageParams msgParams)
         {
             var msgs = _context.Messages
-                .Include(u => u.Sender)
-                .ThenInclude(p => p.Photos)
-                .Include(u => u.Recipient)
-                .ThenInclude(p => p.Photos)
+                //Lazy loading takes care of this.
+                //.Include(u => u.Sender).ThenInclude(p => p.Photos)
+                //.Include(u => u.Recipient).ThenInclude(p => p.Photos)
                 .AsQueryable();
 
             if (msgParams.MessageContainer == "Inbox")
@@ -138,8 +139,9 @@ namespace DattingApp.API.Data
         public async Task<IEnumerable<Message>> GetMessageThread(int senderId, int receiverId)
         {
             return await _context.Messages
-                .Include(u => u.Sender).ThenInclude(p => p.Photos)
-                .Include(u => u.Recipient).ThenInclude(p => p.Photos)
+                //With lazyLoading they're no longer needed.
+                //.Include(u => u.Sender).ThenInclude(p => p.Photos)
+                //.Include(u => u.Recipient).ThenInclude(p => p.Photos)
                 .Where(m => m.RecipientId == senderId && !m.RecipientDeleted &&
                 m.SenderId == receiverId ||
                 m.RecipientId == receiverId && !m.SenderDeleted &&

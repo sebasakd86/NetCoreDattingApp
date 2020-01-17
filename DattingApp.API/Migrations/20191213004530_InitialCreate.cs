@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DattingApp.API.Migrations
 {
@@ -11,6 +12,8 @@ namespace DattingApp.API.Migrations
                 columns: table => new
                 {
                     ID = table.Column<int>(nullable: false)
+                        // To use MySql migrations --> this only applies to Id columns, or the ones with annotations.
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn )
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(nullable: true)
                 },

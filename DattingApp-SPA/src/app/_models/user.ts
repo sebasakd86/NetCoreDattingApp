@@ -7,7 +7,7 @@ export interface User {
     age: number;
     gender: string;
     created: Date;
-    lastActive: Date;
+    lastActive: any; // Date; // so we can avoid issues while going to production mode.
     photoUrl: string;
     city: string;
     country: string;
