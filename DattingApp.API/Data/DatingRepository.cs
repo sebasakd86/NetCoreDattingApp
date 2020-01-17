@@ -119,11 +119,14 @@ namespace DattingApp.API.Data
                 .AsQueryable();
 
             if (msgParams.MessageContainer == "Inbox")
-                msgs = msgs.Where(u => u.RecipientId == msgParams.UserId);
+                msgs = msgs.Where(u => u.RecipientId == msgParams.UserId && !u.RecipientDeleted);
             else if (msgParams.MessageContainer == "Outbox")
-                msgs = msgs.Where(u => u.SenderId == msgParams.UserId);
+                msgs = msgs.Where(u => u.SenderId == msgParams.UserId && !u.SenderDeleted);
             else
-                msgs = msgs.Where(u => u.RecipientId == msgParams.UserId && !u.IsRead);
+                msgs = msgs.Where(u => 
+                    u.RecipientId == msgParams.UserId && 
+                    !u.RecipientDeleted && 
+                    !u.IsRead);
 
             msgs = msgs.OrderByDescending(d => d.MessageSent);
 
@@ -137,8 +140,10 @@ namespace DattingApp.API.Data
             return await _context.Messages
                 .Include(u => u.Sender).ThenInclude(p => p.Photos)
                 .Include(u => u.Recipient).ThenInclude(p => p.Photos)
-                .Where(m => m.RecipientId == senderId && m.SenderId == receiverId ||
-                m.RecipientId == receiverId && m.SenderId == senderId)
+                .Where(m => m.RecipientId == senderId && !m.RecipientDeleted &&
+                m.SenderId == receiverId ||
+                m.RecipientId == receiverId && !m.SenderDeleted &&
+                m.SenderId == senderId)
                 .OrderByDescending(m => m.MessageSent)
                 .ToListAsync();
         }

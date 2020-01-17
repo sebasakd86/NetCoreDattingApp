@@ -86,9 +86,7 @@ export class UserService {
     );
   }
   getMessages(id: number, page?, itemsPerPage?, messageContainer?) {
-    const paginatedResult: PaginatedResult<Message[]> = new PaginatedResult<
-      Message[]
-    >();
+    const paginatedResult: PaginatedResult<Message[]> = new PaginatedResult<Message[]>();
 
     let params = new HttpParams();
 
@@ -100,7 +98,7 @@ export class UserService {
     }
 
     return this.http
-      .get<Message[]>(this.baseUrl + '/users' + id + '/messages', {
+      .get<Message[]>(this.baseUrl + 'users/' + id + '/messages', {
         observe: 'response',
         params
       })
@@ -115,5 +113,31 @@ export class UserService {
           return paginatedResult;
         })
       );
+  }
+
+  getMessageThread(senderId: number, receiverId: number) {
+    return this.http.get<Message[]>(
+      this.baseUrl + 'users/' + senderId + '/messages/thread/' + receiverId
+    );
+  }
+  sendMessage(senderId: number, message: Message) {
+    return this.http.post(
+      this.baseUrl + 'users/' + senderId + '/messages',
+      message
+    );
+  }
+  deleteMessage(msgId: number, userId: number) {
+    return this.http.post(
+      this.baseUrl + 'users/' + userId + '/messages/' + msgId,
+      {}
+    );
+  }
+  markAsRead(userId: number, msgId: number) {
+    this.http
+      .post(
+        this.baseUrl + 'users/' + userId + '/messages/' + msgId + '/read',
+        {}
+      )
+      .subscribe();
   }
 }

@@ -42,12 +42,23 @@ export class MessagesComponent implements OnInit {
           this.pagination = res.pagination;
         },
         error => {
-          this.alertify.error(error);
+          this.alertify.error('Load Messages --> ' + error);
         }
       );
   }
   pageChanged(event: any): void {
     this.pagination.currentPage = event.page;
     this.loadMessages();
+  }
+  deleteMessage(msgId: number) {
+    this.alertify.confirm('Are you sure you want to delete the message?', () => {
+      this.userService.deleteMessage(msgId, this.authService.decodedToken.nameid).subscribe(() => {
+        const msgIx: number = this.messages.findIndex(m => m.id === msgId);
+        this.messages.splice(msgIx, 1);
+        this.alertify.success('Message deleted!');
+      }, error => {
+        this.alertify.error('Failed to delete message -->' + error);
+      });
+    });
   }
 }

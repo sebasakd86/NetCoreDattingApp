@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -39,9 +40,9 @@ namespace DattingApp.API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetMessagesForUser(
-            int userId, 
+            int userId,
             [FromQuery] MessageParams msgParams)
-        { 
+        {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
@@ -52,20 +53,20 @@ namespace DattingApp.API.Controllers
             var msgs = _mapper.Map<IEnumerable<MessageToReturnDTO>>(msgsFromRepo);
 
             Response.AddPagination(
-                msgsFromRepo.CurrentPage, 
-                msgsFromRepo.PageSize, 
-                msgsFromRepo.TotalCount, 
+                msgsFromRepo.CurrentPage,
+                msgsFromRepo.PageSize,
+                msgsFromRepo.TotalCount,
                 msgsFromRepo.TotalPages);
 
             return Ok(msgs);
         }
         [HttpGet("thread/{receiverId}")]
-        public async Task<IActionResult> GetMessageThread(int senderId, int receiverId)
+        public async Task<IActionResult> GetMessageThread(int userId, int receiverId)
         {
-            if (senderId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
-            var msgsFromRepo = await _repo.GetMessageThread(senderId, receiverId);
+            var msgsFromRepo = await _repo.GetMessageThread(userId, receiverId);
 
             var msgThread = _mapper.Map<IEnumerable<MessageToReturnDTO>>(msgsFromRepo);
 
@@ -73,14 +74,18 @@ namespace DattingApp.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMessage(int senderId, MessageForCreationDTO msgDTO)
+        public async Task<IActionResult> CreateMessage(int userId, MessageForCreationDTO msgDTO)
         {
-            if (senderId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            //So autommaper maps automatically the objects inside MessageToReturnDTO
+            User sender = await _repo.GetUser(userId);
+
+            if (sender.ID != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
-            msgDTO.SenderId = senderId;
+            msgDTO.SenderId = userId;
 
-            User recipient = await _repo.GetUser(msgDTO.ReceipientId);
+            User recipient = await _repo.GetUser(msgDTO.RecipientId);
+
             if (recipient == null)
                 return BadRequest("Could not find user");
 
@@ -90,12 +95,47 @@ namespace DattingApp.API.Controllers
 
             if (await _repo.SaveAll())
             {
-                var msgReturn = _mapper.Map<MessageForCreationDTO>(m);
-                return CreatedAtRoute("GetMessage", new { senderId, id = m.Id }, msgReturn);
+                var msgReturn = _mapper.Map<MessageToReturnDTO>(m);
+                return CreatedAtRoute("GetMessage", new { userId, msgId = m.Id }, msgReturn);
                 //return CreatedAtRoute("GetMessage", new { senderId, id = m.Id}, m);
             }
 
             throw new System.Exception("Error while creating message");
+        }
+        [HttpPost("{messageId}")]
+        public async Task<IActionResult> DeleteMessage(int messageId, int userId)
+        {
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+            var msgFromRepo = await _repo.GetMessage(messageId);
+
+            if (msgFromRepo.SenderId == userId)
+                msgFromRepo.SenderDeleted = true;
+            if (msgFromRepo.RecipientId == userId)
+                msgFromRepo.RecipientDeleted = true;
+
+            if (msgFromRepo.SenderDeleted && msgFromRepo.RecipientDeleted)
+                _repo.Delete(msgFromRepo);
+
+            if (await _repo.SaveAll())
+                return NoContent();
+
+            throw new Exception("Error deleting the message");
+        }
+        [HttpPost("{messageId}/read")]
+        public async Task<IActionResult> MarkAsRead(int messageId, int userId)
+        {
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+            var msg = await _repo.GetMessage(messageId);
+            if (msg.RecipientId != userId)
+                return Unauthorized();
+            msg.IsRead = true;
+            msg.DateRead = DateTime.Now;
+
+            if(await _repo.SaveAll())
+                return NoContent();
+            throw new Exception("Error while marking the message as read");
         }
     }
 }
