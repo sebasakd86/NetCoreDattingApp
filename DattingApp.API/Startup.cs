@@ -112,7 +112,6 @@ namespace DattingApp.API
                     });
                 });
             }
-
             app.UseHttpsRedirection();
 
             app.UseRouting();
