@@ -78,13 +78,19 @@ namespace DattingApp.API.Controllers
             }
             return Unauthorized();
         }
-        private string GenerateJWTToken(User user)
+        private async Task<string> GenerateJWTToken(User user)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.Name, user.UserName)                
             };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach(var r in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, r));
+            }
             //Sign the token
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value)

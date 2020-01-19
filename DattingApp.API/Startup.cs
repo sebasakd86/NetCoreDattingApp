@@ -92,6 +92,22 @@ namespace DattingApp.API
                 };
             });
 
+            services.AddAuthorization(opt => 
+            {
+                opt.AddPolicy("RequireAdminRole", policy => 
+                {
+                    policy.RequireRole("Admin");
+                });
+                opt.AddPolicy("ModeratePhotoRole", policy => 
+                {
+                    policy.RequireRole("Admin", "Moderator");
+                });
+                opt.AddPolicy("VipOnly", policy => 
+                {
+                    policy.RequireRole("VIP");
+                });
+            });
+
             services.AddControllers(opt => 
             {
                 //So that every user has to authenticate in each method in our api

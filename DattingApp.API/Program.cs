@@ -22,11 +22,12 @@ namespace DattingApp.API
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<DataContext>();
-                    context.Database.Migrate();
+                    var context = services.GetRequiredService<DataContext>();                   
 
                     var userManager = services.GetRequiredService<UserManager<User>>();
-                    Seed.SeedUsers(userManager);
+                    var roleManager = services.GetRequiredService<RoleManager<Role>>();
+                    context.Database.Migrate();
+                    Seed.SeedUsers(userManager, roleManager);
                 }
                 catch (System.Exception ex)
                 {
