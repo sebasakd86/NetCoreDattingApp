@@ -19,12 +19,12 @@ namespace DattingApp.API.Data
 
             if(user == null)
                 return null;
-
+            /*
             if(!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
             {
                 return null;
             }
-
+            */
             return user;
         }
 
@@ -44,8 +44,10 @@ namespace DattingApp.API.Data
         {
             byte[] pHash, pSalt;
             CreatePasswordHash(password, out pHash, out pSalt);
+            /*
             user.PasswordHash = pHash;
             user.PasswordSalt = pSalt;
+            */
             await this._context.Users.AddAsync(user);
             await this._context.SaveChangesAsync();
             return user;

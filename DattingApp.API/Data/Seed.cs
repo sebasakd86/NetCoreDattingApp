@@ -2,28 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DattingApp.API.Model;
+using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
 
 namespace DattingApp.API.Data
 {
     public class Seed
     {
-        public static void SeedUsers(DataContext context)
+        public static void SeedUsers(UserManager<User> userManager) // (DataContext context)
         {
-            if (!context.Users.Any())
+            if (!userManager.Users.Any())
             {
                 var usrData = System.IO.File.ReadAllText("Data/UserSeedData.json");
                 var usrs = JsonConvert.DeserializeObject<List<User>>(usrData);
                 foreach(var u in usrs)
-                {
-                    byte[] passHash, passSalt;
-                    CreatePassWordHash("password", out passHash, out passSalt);
-                    u.PasswordHash = passHash;
-                    u.PasswordSalt = passSalt;
-                    u.UserName = u.UserName.ToLower();
-                    context.Users.Add(u);                    
+                {   
+                    userManager.CreateAsync(u, "password").Wait();
                 }
-                context.SaveChanges();
             }
         }
        private static void CreatePassWordHash(string password, out byte[] pHash, out byte[] pSalt)

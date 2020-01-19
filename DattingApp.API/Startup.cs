@@ -20,7 +20,10 @@ using Microsoft.AspNetCore.Http;
 using DattingApp.API.Helpers;
 using AutoMapper;
 using Pomelo.EntityFrameworkCore.MySql;
-
+using Microsoft.AspNetCore.Identity;
+using DattingApp.API.Model;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace DattingApp.API
 {
@@ -61,18 +64,21 @@ namespace DattingApp.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-            // To add json functionality to netCore 3.0 without System.Text.Json // To avoid the circular reference issue.
-            services.AddControllers().AddNewtonsoftJson(
-                x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-            );
-            services.AddCors();
-            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
-            //So automapper can look for the profile in our assembly
-            services.AddAutoMapper(typeof(DatingRepository).Assembly);
-            //The service is added one per request within the scope.
-            services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IDatingRepository, DatingRepository>();
+            //Identity CFG
+            IdentityBuilder builder = services.AddIdentityCore<User>(opt => 
+            {
+                //To use "password" as password, non production cfg.
+                opt.Password.RequireDigit = false;
+                opt.Password.RequiredLength = 4;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireUppercase = false;
+            });
+            builder = new IdentityBuilder(builder.UserType, typeof(Role), builder.Services);
+            builder.AddEntityFrameworkStores<DataContext>();
+            builder.AddRoleValidator<RoleValidator<Role>>();
+            builder.AddRoleManager<RoleManager<Role>>();
+            builder.AddSignInManager<SignInManager<User>>();
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer
             (options => {
@@ -85,6 +91,37 @@ namespace DattingApp.API
                     ValidateAudience = false
                 };
             });
+
+            services.AddControllers(opt => 
+            {
+                //So that every user has to authenticate in each method in our api
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                opt.Filters.Add(new AuthorizeFilter(policy));services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer
+            (options => {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+            });
+            // To add json functionality to netCore 3.0 without System.Text.Json // To avoid the circular reference issue.
+            services.AddControllers().AddNewtonsoftJson(
+                x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
+            services.AddCors();
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+            //So automapper can look for the profile in our assembly
+            services.AddAutoMapper(typeof(DatingRepository).Assembly);
+            //The service is added one per request within the scope.
+            //services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IDatingRepository, DatingRepository>();            
             services.AddScoped<LogUserActivity>();
         }
 

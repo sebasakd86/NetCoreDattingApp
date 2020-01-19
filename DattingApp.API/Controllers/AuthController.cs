@@ -13,58 +13,77 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace DattingApp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
-        public AuthController(IAuthRepository repo, IConfiguration config, IMapper mapper)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+
+        public AuthController(
+            IConfiguration config, 
+            IMapper mapper,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager)
         {
-            this._repo = repo;
             this._config = config;
             this._mapper = mapper;
+            this._userManager = userManager;
+            this._signInManager = signInManager;
         }
 
         //Parameters are all infered via ApiController. Otherwise FromBody within params.
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDTO usrDto)
         {
-            usrDto.UserName = usrDto.UserName.ToLower();
-            if (await _repo.UserExists(usrDto.UserName))
-            {
-                return BadRequest($"Username {usrDto.UserName} already exists");
-            }
-            /*
-            var user = new User
-            {
-                UserName = usrDto.UserName   
-            };
-            */
             User user = _mapper.Map<User>(usrDto);
 
-            User createdUser = await _repo.Register(user, usrDto.Password);
+            var result = await _userManager.CreateAsync(user, usrDto.Password);            
 
-            var usrToReturn = _mapper.Map<UserForDetailedDTO>(createdUser);
+            if(result.Succeeded)
+            {
+                var usrToReturn = _mapper.Map<UserForDetailedDTO>(user);
 
-            //return StatusCode(201);
-            return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.ID }, usrToReturn);
+                return CreatedAtRoute("GetUser", new { controller = "Users", id = user.Id }, usrToReturn);
+            }
+            return BadRequest(result.Errors);            
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDTO usrDto)
         {
-            var userFromRepo = await _repo.Login(usrDto.UserName.ToLower(), usrDto.Password);
-            if (userFromRepo == null)
-                return Unauthorized();
+            var user = await _userManager.FindByNameAsync(usrDto.UserName);            
+
+            var res = await _signInManager.CheckPasswordSignInAsync(
+                user, 
+                usrDto.Password,
+                false
+            );
+            if(res.Succeeded)
+            {
+                var appUsr = _mapper.Map<UserForListDTO>(user);
+                return Ok(new
+                {
+                    token = GenerateJWTToken(user),
+                    user = appUsr //to avoid cascading changes in our spa
+                });
+            }
+            return Unauthorized();
+        }
+        private string GenerateJWTToken(User user)
+        {
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.ID.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.UserName)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName)
             };
             //Sign the token
             var key = new SymmetricSecurityKey(
@@ -82,13 +101,7 @@ namespace DattingApp.API.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            var user = _mapper.Map<UserForListDTO>(userFromRepo);
-
-            return Ok(new
-            {
-                token = tokenHandler.WriteToken(token),
-                user
-            });
+            return tokenHandler.WriteToken(token);
         }
 
     }

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace DattingApp.API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/users/{userId}/photos")]
     public class PhotosController : ControllerBase
     {

@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DattingApp.API.Controllers
 {
     [ServiceFilter(typeof(LogUserActivity))]
-    [Authorize]
+    //[Authorize]
     [Route("api/users/{userId}/[controller]")]
     [ApiController]
     public class MessagesController : ControllerBase
@@ -79,7 +79,7 @@ namespace DattingApp.API.Controllers
             //So autommaper maps automatically the objects inside MessageToReturnDTO
             User sender = await _repo.GetUser(userId);
 
-            if (sender.ID != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
             msgDTO.SenderId = userId;

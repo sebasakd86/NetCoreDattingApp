@@ -1,6 +1,8 @@
 using System;
 using DattingApp.API.Data;
+using DattingApp.API.Model;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +24,9 @@ namespace DattingApp.API
                 {
                     var context = services.GetRequiredService<DataContext>();
                     context.Database.Migrate();
-                    Seed.SeedUsers(context);
+
+                    var userManager = services.GetRequiredService<UserManager<User>>();
+                    Seed.SeedUsers(userManager);
                 }
                 catch (System.Exception ex)
                 {

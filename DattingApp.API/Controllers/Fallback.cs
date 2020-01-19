@@ -1,9 +1,11 @@
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DattingApp.API.Controllers
 {
     //We need view support so we inherit controller and route our angular app.
+    [AllowAnonymous]
     public class Fallback : Controller
     {
         public IActionResult Index()

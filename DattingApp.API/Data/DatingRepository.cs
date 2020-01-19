@@ -44,7 +44,7 @@ namespace DattingApp.API.Data
         {
             var u = await _context.Users
                         //.Include(p => p.Photos)
-                        .FirstOrDefaultAsync(u => u.ID == id);
+                        .FirstOrDefaultAsync(u => u.Id == id);
             return u;
         }
         public async Task<PagedList<User>> GetUsers(UserParams usrParams)
@@ -55,19 +55,19 @@ namespace DattingApp.API.Data
                 .OrderByDescending(u => u.LastActive)
                 .AsQueryable();
 
-            users = users.Where(u => u.ID != usrParams.UserId);
+            users = users.Where(u => u.Id != usrParams.UserId);
 
             users = users.Where(u => u.Gender == usrParams.Gender);
             //Console.WriteLine($"Likers: {usrParams.Likers} | Likees: {usrParams.Likees}");
             if (usrParams.Likers)
             {
                 var userLikers = await GetUserLikes(usrParams.UserId, true);
-                users = users.Where(u => userLikers.Contains(u.ID));
+                users = users.Where(u => userLikers.Contains(u.Id));
             }
             if (usrParams.Likees)
             {
                 var userLikees = await GetUserLikes(usrParams.UserId, false);
-                users = users.Where(u => userLikees.Contains(u.ID));
+                users = users.Where(u => userLikees.Contains(u.Id));
             }
             if (usrParams.MinAge != 18 || usrParams.MaxAge != 99)
             {
@@ -90,7 +90,7 @@ namespace DattingApp.API.Data
             User u = await _context.Users
                         //.Include(x => x.Likers)
                         //.Include(x => x.Likees)
-                        .FirstOrDefaultAsync(u => u.ID == userId);
+                        .FirstOrDefaultAsync(u => u.Id == userId);
             if (likers)
             {
                 return u.Likers.Where(u => u.LikeeId == userId).Select(i => i.LikerId);

@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 
 namespace DattingApp.API.Model
 {
-    public class User
+    public class User : IdentityUser<int>
     {
+        /*
         public int ID { get; set; }
         public string UserName { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
+        */
         public string Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
         public DateTime Created { get; set; }
@@ -26,5 +29,6 @@ namespace DattingApp.API.Model
         public virtual ICollection<Like> Likees { get; set; }
         public virtual ICollection<Message> MessagesSent { get; set; }
         public virtual ICollection<Message> MessagesReceived { get; set; }
+        public virtual ICollection<UserRole> UserRoles { get; set; }
     }
 }
