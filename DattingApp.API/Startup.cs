@@ -122,14 +122,15 @@ namespace DattingApp.API
             app.UseAuthentication();
 
             app.UseAuthorization();
+
             // To serve static files
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                
                 //To route the angular app
                 endpoints.MapFallbackToController("Index","Fallback");
             });
