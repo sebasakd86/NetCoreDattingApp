@@ -61,6 +61,8 @@ namespace DattingApp.API.Controllers
         public async Task<IActionResult> Login(UserForLoginDTO usrDto)
         {
             var user = await _userManager.FindByNameAsync(usrDto.UserName);            
+            if(user == null) //User not found?
+                return BadRequest();
 
             var res = await _signInManager.CheckPasswordSignInAsync(
                 user, 
@@ -72,7 +74,7 @@ namespace DattingApp.API.Controllers
                 var appUsr = _mapper.Map<UserForListDTO>(user);
                 return Ok(new
                 {
-                    token = GenerateJWTToken(user),
+                    token = GenerateJWTToken(user).Result,
                     user = appUsr //to avoid cascading changes in our spa
                 });
             }

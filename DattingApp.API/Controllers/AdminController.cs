@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DattingApp.API.Controllers
 {
     [ApiController]
-    [Route("api/[controler]")]
+    [Route("api/[controller]")]
     public class AdminController : ControllerBase
     {
         private readonly DataContext _context;

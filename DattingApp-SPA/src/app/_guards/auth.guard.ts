@@ -8,7 +8,17 @@ import { AlertifyService } from '../_service/alertify.service';
 })
 export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService, private router: Router, private alertify: AlertifyService){}
-  canActivate(): boolean {
+  canActivate(next: ActivatedRouteSnapshot): boolean {
+    const roles = next.firstChild.data.roles as Array<string>;
+    if (roles) { // if the guard holds a role in its data
+      const match = this.authService.roleMatch(roles);
+      if (match) {
+        return true;
+      }
+      this.router.navigate(['members']);
+      this.alertify.error('User unauthorized');
+    }
+
     if (this.authService.loggedIn()) {
       return true;
     }
