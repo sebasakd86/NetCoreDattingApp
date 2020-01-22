@@ -1,3 +1,25 @@
-<p>
-  photo-management works!
-</p>
+<div class="row">
+  <div *ngFor="let p of photosToApprove" class="col-sm1 p-1 mr-3 text-center">
+    <img
+      src="{{ p.url }}"
+      class="img-thumbnail p-1"
+      alt="{{ p.description }}"
+    />
+    <div class="text-center">
+      <button
+        type="text"
+        class="btn btn-success btn-sm"
+        (click)="moderatePhoto(p, true)"
+      >
+        <i class="fa fa-check"></i>
+      </button>
+      <button
+        type="text"
+        class="btn btn-danger btn-sm"
+        (click)="moderatePhoto(p, false)"
+      >
+        <i class="fa fa-ban"></i>
+      </button>
+    </div>
+  </div>
+</div>

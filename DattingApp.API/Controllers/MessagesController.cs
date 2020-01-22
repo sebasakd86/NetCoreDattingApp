@@ -66,9 +66,9 @@ namespace DattingApp.API.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
-            var msgsFromRepo = await _repo.GetMessageThread(userId, receiverId);
+            IEnumerable<Message> msgsFromRepo = await _repo.GetMessageThread(userId, receiverId);
 
-            var msgThread = _mapper.Map<IEnumerable<MessageToReturnDTO>>(msgsFromRepo);
+            IEnumerable<MessageToReturnDTO> msgThread = _mapper.Map<IEnumerable<MessageToReturnDTO>>(msgsFromRepo);
 
             return Ok(msgThread);
         }

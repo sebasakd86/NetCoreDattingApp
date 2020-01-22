@@ -40,11 +40,11 @@ namespace DattingApp.API
         public void ConfigureProductionServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(
-                x => 
+                x =>
                 {
                     x.UseLazyLoadingProxies(); //To enable LazyLoading avoiding includes.
                     x.UseMySql(Configuration.GetConnectionString("MySQLConnetionString"));
-                } 
+                }
             );
 
             ConfigureServices(services);
@@ -52,7 +52,7 @@ namespace DattingApp.API
         public void ConfigureDevelopmentServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(
-                x => 
+                x =>
                 {
                     x.UseLazyLoadingProxies();
                     x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
@@ -65,7 +65,7 @@ namespace DattingApp.API
         public void ConfigureServices(IServiceCollection services)
         {
             //Identity CFG
-            IdentityBuilder builder = services.AddIdentityCore<User>(opt => 
+            IdentityBuilder builder = services.AddIdentityCore<User>(opt =>
             {
                 //To use "password" as password, non production cfg.
                 opt.Password.RequireDigit = false;
@@ -81,7 +81,8 @@ namespace DattingApp.API
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer
-            (options => {
+            (options =>
+            {
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuerSigningKey = true,
@@ -92,52 +93,54 @@ namespace DattingApp.API
                 };
             });
 
-            services.AddAuthorization(opt => 
+            services.AddAuthorization(opt =>
             {
-                opt.AddPolicy("RequireAdminRole", policy => 
+                opt.AddPolicy("RequireAdminRole", policy =>
                 {
                     policy.RequireRole("Admin");
                 });
-                opt.AddPolicy("ModeratePhotoRole", policy => 
+                opt.AddPolicy("ModeratePhotoRole", policy =>
                 {
                     policy.RequireRole("Admin", "Moderator");
                 });
-                opt.AddPolicy("VipOnly", policy => 
+                opt.AddPolicy("VipOnly", policy =>
                 {
                     policy.RequireRole("VIP");
                 });
             });
 
-            services.AddControllers(opt => 
+            services.AddControllers(opt =>
             {
                 //So that every user has to authenticate in each method in our api
                 var policy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
-                opt.Filters.Add(new AuthorizeFilter(policy));services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer
-            (options => {
-                options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
-            });
+                opt.Filters.Add(new AuthorizeFilter(policy)); services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+             .AddJwtBearer
+             (options =>
+             {
+                 options.TokenValidationParameters = new TokenValidationParameters()
+                 {
+                     ValidateIssuerSigningKey = true,
+                     IssuerSigningKey = new SymmetricSecurityKey(
+                         Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                     ValidateIssuer = false,
+                     ValidateAudience = false
+                 };
+             });
             });
             // To add json functionality to netCore 3.0 without System.Text.Json // To avoid the circular reference issue.
             services.AddControllers().AddNewtonsoftJson(
                 x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
+            services.AddTransient<Controllers.PhotosController>();
             services.AddCors();
             services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
             //So automapper can look for the profile in our assembly
             services.AddAutoMapper(typeof(DatingRepository).Assembly);
             //The service is added one per request within the scope.
             //services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IDatingRepository, DatingRepository>();            
+            services.AddScoped<IDatingRepository, DatingRepository>();
             services.AddScoped<LogUserActivity>();
         }
 
@@ -153,11 +156,13 @@ namespace DattingApp.API
             else
             {
                 //To catch global errors in production environment
-                app.UseExceptionHandler(builder => {
-                    builder.Run(async context => {
-                        context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+                app.UseExceptionHandler(builder =>
+                {
+                    builder.Run(async context =>
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                         var error = context.Features.Get<IExceptionHandlerFeature>();
-                        if(error != null)
+                        if (error != null)
                         {
                             context.Response.AddApplicationError(error.Error.Message);
                             await context.Response.WriteAsync(error.Error.Message);
@@ -169,7 +174,7 @@ namespace DattingApp.API
 
             app.UseRouting();
 
-            app.UseCors(c => c.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());            
+            app.UseCors(c => c.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
             app.UseAuthentication();
 
@@ -182,9 +187,9 @@ namespace DattingApp.API
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                
+
                 //To route the angular app
-                endpoints.MapFallbackToController("Index","Fallback");
+                endpoints.MapFallbackToController("Index", "Fallback");
             });
         }
     }

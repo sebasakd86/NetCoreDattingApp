@@ -30,7 +30,6 @@ export class UserManagementComponent implements OnInit {
         this.users = users;
       },
       error => {
-        console.log(error);
         this.alertify.error(error);
       }
     );
@@ -44,7 +43,18 @@ export class UserManagementComponent implements OnInit {
     this.bsModalRef = this.modalService.show(RolesModalComponent, {
       initialState
     });
-    this.bsModalRef.content.closeBtnName = 'Close';
+    this.bsModalRef.content.updateSelectedRoles.subscribe((values) => {
+      const rolesToUpdate = {
+        roleNames: [...values.filter( el => el.checked).map( el => el.name)]
+      };
+      if (rolesToUpdate) {
+        this.admService.updateUserRoles(user, rolesToUpdate).subscribe(() => {
+          user.roles = [...rolesToUpdate.roleNames];
+        }, error => {
+          this.alertify.error(error);
+        });
+      }
+    });
   }
   private getRolesArray(user) {
     const roles = [];

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -56,8 +58,12 @@ namespace DattingApp.API.Controllers
         public async Task<IActionResult> GetUser(int id)
         {
             User u = await _repo.GetUser(id);
-
+          
+            int currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            
             var retUser = _mapper.Map<UserForDetailedDTO>(u);
+            if(id != currentUserId)
+                retUser.Photos = retUser.Photos.Where(p => p.Status != "Pending").ToList();
 
             return Ok(retUser);
         }

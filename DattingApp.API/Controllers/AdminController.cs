@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using DattingApp.API.Data;
 using DattingApp.API.DTO;
 using DattingApp.API.Model;
@@ -16,8 +19,12 @@ namespace DattingApp.API.Controllers
     {
         private readonly DataContext _context;
         private readonly UserManager<User> _userManager;
-        public AdminController(DataContext context, UserManager<User> userManager)
+        private readonly IMapper _mapper;
+        private readonly PhotosController _photoController;
+        public AdminController(DataContext context, UserManager<User> userManager, IMapper mapper, PhotosController photoController)
         {
+            _photoController = photoController;
+            _mapper = mapper;
             _userManager = userManager;
             _context = context;
         }
@@ -42,11 +49,38 @@ namespace DattingApp.API.Controllers
         }
         [Authorize(Policy = "ModeratePhotoRole")]
         [HttpGet("photosForModeration")]
-        public IActionResult GetPhotosForModeration()
+        public async Task<IActionResult> GetPhotosForModeration()
         {
-            return Ok("Only admins & mods");
+            IEnumerable<Photo> photos = await _context.Photos.Where(p => p.Status == "Pending").ToListAsync();
+            IEnumerable<PhotoForReturnDTO> pReturn = _mapper.Map<IEnumerable<PhotoForReturnDTO>>(photos);
+            return Ok(pReturn);
         }
-
+        [Authorize(Policy = "ModeratePhotoRole")]
+        [HttpPost("approvePhoto/{photoId}")]
+        public async Task<IActionResult> ApprovePhoto(int photoId)
+        {
+            //Photo p = await _repo.GetPhoto(photoId);
+            Photo p = await _context.Photos.FindAsync(photoId);
+            if (p == null)
+                return BadRequest();
+            //Update the photo
+            p.Status = "Approved";
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        [Authorize(Policy = "ModeratePhotoRole")]
+        [HttpDelete("banPhoto/{photoId}")]
+        public async Task<IActionResult> BanPhoto(int photoId)
+        {
+            //Photo p = await _repo.GetPhoto(photoId);
+            Photo p = await _context.Photos.FindAsync(photoId);
+            if (p == null)
+                return BadRequest();
+            //Update the photo            
+            _context.Photos.Remove(p);
+            await _context.SaveChangesAsync();
+            return NoContent();            
+        }
         [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("editRoles/{userName}")]
         public async Task<IActionResult> EditRoles(string userName, RoleEditDTO roleEditDto)
@@ -56,13 +90,13 @@ namespace DattingApp.API.Controllers
             string[] selRoles = roleEditDto.RoleNames;
             //selRoles == selRoles ?? new string[]{}; //could be null? or just empty?
             var result = await _userManager.AddToRolesAsync(usr, selRoles.Except(usrRoles));
-            if(!result.Succeeded)
+            if (!result.Succeeded)
                 return BadRequest("Failer to add roles");
-            
+
             result = await _userManager.RemoveFromRolesAsync(usr, usrRoles.Except(selRoles));
-            if(!result.Succeeded)
+            if (!result.Succeeded)
                 return BadRequest("Failer to remove roles");
-            
+
             return Ok(await _userManager.GetRolesAsync(usr));
         }
     }
