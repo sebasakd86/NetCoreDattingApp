@@ -20,7 +20,7 @@
     "@angular/platform-browser-dynamic": "~8.2.14",
     "@angular/router": "~8.2.14",
     "@auth0/angular-jwt": "^3.0.1",
-    "@ngtools/webpack": "^1.2.4",
+    "@ngtools/webpack": "^15.0.4",
     "alertifyjs": "^1.13.1",
     "bootstrap": "^4.4.1",
     "bootswatch": "^4.4.1",
@@ -34,7 +34,7 @@
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.803.20",
+    "@angular-devkit/build-angular": "~15.0.4",
     "@angular/cli": "~8.3.20",
     "@angular/compiler-cli": "~8.2.14",
     "@angular/language-service": "~8.2.14",
